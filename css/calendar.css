@@ -1,0 +1,27 @@
+.cal-container{
+	height: 100%;
+}
+
+.cal-container:after{
+	clear: both;
+	content: "";
+	display: block;
+}
+
+.cal-btn-group{
+	float: right;
+}
+
+.PL{
+	background-color: #007E9F !important;
+	color: #fff !important;
+}
+
+.TR{
+	background-color: #007bff !important;
+	color: #fff !important;
+}
+
+.PL:hover, .TR:hover{
+	cursor: pointer;
+}

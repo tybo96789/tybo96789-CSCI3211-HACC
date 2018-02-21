@@ -1,0 +1,165 @@
+<?php
+  /*Start session before anything*/
+  session_start();
+  $volunID = -1;
+  if(isset($_SESSION)){
+    $volunID = $_SESSION['VolunID'];
+  }
+  /*Session Grabber*/
+
+  ini_set('display_errors', '1');
+
+  require_once('../../config.php');
+  $call = new Query();
+
+  $r_select = "SELECT EventID FROM registration WHERE VolunID = '$volunID'";
+  $e_reg = $call::run($r_select);
+  $registered = "0";
+  foreach($e_reg as $er){
+    $registered .= ", " . $er['EventID'];
+  }
+
+  $select = "SELECT * FROM event WHERE EventType ='TR' AND EventID IN ($registered);";
+  $events = $call::run($select);
+
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>HiVolunteer</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/fullcalendar.min.css" rel="stylesheet">
+    <link href="/css/fullcalendar.print.min.css" rel="stylesheet">
+
+    <link href="/css/calendar.css" rel="stylesheet">
+
+
+    <!-- Custom styles for this template -->
+    <link href="/css/home.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="/volunteer">HiVolunteer</a>
+      <button class="navbar-toggler d-lg-none" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="/index.php">Home <span class="sr-only">(current)</span></a>
+          </li>
+        </ul>
+      </ul>
+        <ul class="nav navbar-nav navbar-right">
+            <li class="nav-item active" style="padding-left:0.75em;">
+                <a class="btn btn-secondary" href="/index.php" role="button">Logout</a>
+            </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-sm-3 col-md-2 d-none d-sm-block bg-light sidebar">
+          <h4>Polling Events</h4>
+          <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+              <a class="nav-link" href="polling.php">Registered</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="pollComing.php">Upcoming</a>
+            </li> 
+          </ul>
+
+           <ul class="nav nav-pills flex-column">
+            <h4>Training Events</h4>
+            <li class="nav-item">
+              <a class="nav-link" href="train.php">Registered</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="trainComing.php">Upcoming</a>
+            </li> 
+          
+          </ul>
+        </nav>
+
+        <main class="col-sm-9 ml-sm-auto col-md-10 pt-3" role="main">
+          <h1>Polling</h1>
+
+          <div class="container" id="wrap">
+            <table class="table table-hover" id="event-listing">
+              <thead>
+              <tr>
+                <!-- <th>EventID</th> -->
+                <th>EventCode</th>
+                <th>Title</th>
+                <!-- <th>EventType</th> -->
+                <th>Location</th>
+                <th>Date</th>
+                <th>Time</th>
+                 <th></th>
+              </tr>
+              </thead>
+            <tbody>
+              <?php
+              foreach($events as $e){
+                echo "<tr>";
+                // echo"<td>".$e['EventID']."</td>";
+                echo"<td>". $e['EventType'] . $e['EventCode']."</td>";
+                echo"<td>".$e['Title']."</td>";
+                // echo"<td>".$e['EventType']."</td>";
+                echo"<td>".$e['Location']."</td>";
+                echo"<td>".$e['EventDate']."</td>";
+                echo"<td>".date_format(date_create($e['Starttime'], timezone_open("Pacific/Honolulu")),"g:i A")
+                   . " - " 
+                   . date_format(date_create($e['Endtime'], timezone_open("Pacific/Honolulu")),"g:i A")."</td>";
+                // echo"<td>".$e['TeamID']."</td>";
+                // echo"<td><a href='http://gameressence.space/volunteer/form1.html' class='btn btn-info' role='button'>Register</a></td>";
+                echo"<td><button id='". $e['RegID'] ."' class='btn btn-danger' role='button'>Delete</button></td>";
+                echo "</tr>";
+                
+              }
+              ?>
+            </tbody>
+          </table>
+          </div>
+        </main>
+      </div>
+    </div>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" type="text/javascript">
+  </script>
+  <script>
+    $("#event-listing button").on("click", function(){
+      var cell = $(this).attr('id');
+      alert(cell);
+
+       $.ajax({
+             type: "POST",
+             url: "../deleteEvent.php",
+             data: {
+                delete: cell
+             }, // serializes the form's elements.
+             success: function(data)
+             {
+                 alert(data); // show response from the php script.
+                 window.location.replace("./index.php");
+                 // console.log(data);
+             },
+             error: function(xhr, ajaxOptions, thrownError)
+             {
+                 alert("Error: " + thrownError);
+             }
+      });
+
+    });
+  </script>
+  </body>
+</html>
